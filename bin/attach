@@ -1,0 +1,12 @@
+#!/bin/bash -e
+
+# Check if at least one argument is provided
+if [ "$#" -lt 1 ]; then
+    echo "Usage: $0 <service name>"
+    exit 1
+fi
+
+key_to_exit="ctrl-k"
+
+echo "Please press $key_to_exit to exit."
+docker attach --detach-keys "$key_to_exit" meteosense-"$1"-1

@@ -1,35 +1,99 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState, useEffect, useMemo } from "react";
+import { v4 as uuidv4 } from 'uuid';
+import { getAddressSuggestions, getCurrentWeather, getDailyWeatherForecast } from './utils/api';
+import ForecastTile from './components/ForecastTile.jsx'
+import CurrentWeather from './components/CurrentWeather.jsx'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [query, setQuery] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [weather, setWeather] = useState(null);
+  const [forecast, setForecast] = useState(null);
+  const [sessionId, setSessionId] = useState("");
+  const [cacheStatus, setCacheStatus] = useState({ weather: null, forecast: null });
+  const [cacheAge, setCacheAge] = useState({ weather: null, forecast: null });
+
+  useEffect(() => {
+    setSessionId(uuidv4());
+  }, []);
+
+  const handleInputChange = async (e) => {
+    const value = e.target.value;
+    setQuery(value);
+
+    if (value.length > 2) {
+      try {
+        const response = await getAddressSuggestions(value, sessionId);
+        setSuggestions(response.data.data);
+      } catch (error) {
+        console.error("Error fetching address suggestions: ", error);
+        setSuggestions([]);
+      }
+    } else {
+      setSuggestions([]);
+    }
+  };
+
+  const handleSelectSuggestion = async (suggestion) => {
+    setQuery(suggestion.address);
+    setSuggestions([]);
+
+    const { latitude, longitude } = suggestion;
+
+    try {
+      const [currentWeatherResponse, forecastResponse] = await Promise.all([
+        getCurrentWeather(latitude, longitude),
+        getDailyWeatherForecast(latitude, longitude)
+      ]);
+
+      setWeather(currentWeatherResponse.data.data);
+      setForecast(forecastResponse.data.data);
+      setCacheStatus({
+        weather: currentWeatherResponse.headers['x-cache-hit'] === 'true',
+        forecast: forecastResponse.headers['x-cache-hit'] === 'true'
+      });
+      setCacheAge({
+        weather: currentWeatherResponse.headers['x-cache-age'],
+        forecast: forecastResponse.headers['x-cache-age']
+      });
+    } catch (error) {
+      console.error("Error fetching weather data: ", error);
+    }
+  };
+
+  const suggestionsList = useMemo(() => (
+    suggestions.length > 0 && (
+      <ul className="border rounded mb-4">
+        {suggestions.map((suggestion) => (
+          <li
+            key={suggestion.latitude + suggestion.longitude}
+            className="p-2 cursor-pointer hover:bg-gray-100"
+            onClick={() => handleSelectSuggestion(suggestion)}
+          >
+            {suggestion.address}
+          </li>
+        ))}
+      </ul>
+    )
+  ), [suggestions]);
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+      <div className="container mx-auto p-4">
+        <h1 className="text-2xl font-bold mb-4">MeteoSense: Weather Forecasting App</h1>
+        <input
+          type="text"
+          className="w-full p-2 border rounded mb-2"
+          placeholder="Enter an address"
+          value={query}
+          onChange={handleInputChange}
+        />
+        {suggestionsList}
+        {weather && <CurrentWeather weather={weather} cacheStatus={cacheStatus.weather} cacheAge={cacheAge.weather} />}
+        {forecast && <ForecastTile forecast={forecast} cacheStatus={cacheStatus.forecast} cacheAge={cacheAge.forecast} />}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
-  )
+  );
 }
 
-export default App
+export default App;

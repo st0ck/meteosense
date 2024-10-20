@@ -1,8 +1,10 @@
 version: '3'
 services:
   redis:
+    container_name: meteosense-redis-1
     image: 'redis:latest'
   nginx:
+    container_name: meteosense-nginx-1
     depends_on:
       - api
       - ui
@@ -13,8 +15,14 @@ services:
     ports:
       - '3000:80'
   api:
+    container_name: meteosense-api-1
     depends_on:
       - redis
+    # Allows to attach to the running container and interact with the output (useful for debugging)
+    tty: true
+    stdin_open: true
+    # Passes all specified environment variables to the container
+    env_file: 'api/.env'
     build:
       dockerfile: Dockerfile.dev
       context: ./api
@@ -24,6 +32,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
   ui:
+    container_name: meteosense-ui-1
     environment:
       - WDS_SOCKET_PORT=0
     build:
