@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 function CurrentWeather({ weather, cacheStatus, cacheAge }) {
   return (
     <div className="p-6 border rounded shadow mb-6">
@@ -20,5 +22,17 @@ function CurrentWeather({ weather, cacheStatus, cacheAge }) {
     </div>
   );
 }
+
+CurrentWeather.propTypes = {
+  weather: PropTypes.shape({
+    status: PropTypes.string.isRequired,
+    temperature: PropTypes.number.isRequired,
+    feels_like: PropTypes.number.isRequired,
+    humidity: PropTypes.number.isRequired,
+    wind_speed: PropTypes.number.isRequired,
+  }).isRequired,
+  cacheStatus: PropTypes.bool,
+  cacheAge: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+};
 
 export default CurrentWeather;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { v4 as uuidv4 } from 'uuid';
 import { getAddressSuggestions, getCurrentWeather, getDailyWeatherForecast } from './utils/api';
 import ForecastTile from './components/ForecastTile.jsx'

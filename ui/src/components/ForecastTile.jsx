@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 function ForecastTile({ forecast, cacheStatus, cacheAge }) {
   return (
     <div>
@@ -23,5 +25,18 @@ function ForecastTile({ forecast, cacheStatus, cacheAge }) {
     </div>
   );
 }
+
+ForecastTile.propTypes = {
+  forecast: PropTypes.arrayOf(PropTypes.shape({
+    date: PropTypes.string.isRequired,
+    status: PropTypes.string.isRequired,
+    temperature: PropTypes.number.isRequired,
+    feels_like: PropTypes.number.isRequired,
+    humidity: PropTypes.number.isRequired,
+    wind_speed: PropTypes.number.isRequired,
+  })).isRequired,
+  cacheStatus: PropTypes.bool,
+  cacheAge: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+};
 
 export default ForecastTile;
