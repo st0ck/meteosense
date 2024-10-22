@@ -39,5 +39,5 @@ services:
       dockerfile: Dockerfile.dev
       context: ./ui
     volumes:
-      - /app/node_modules
       - ./ui:/app
+      - /app/node_modules
