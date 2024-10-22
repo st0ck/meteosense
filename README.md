@@ -5,8 +5,27 @@ MeteoSense is a weater forcasting service based on the entered address.
 DEMO:
 https://github.com/user-attachments/assets/43d4d315-ea22-40b1-871e-4d14480dd297
 
-[API description](docs/API_DESCRIPTION.md)
 [Code challenge requirements and made assumptions](docs/REQUIREMENTS_AND_ASSUMPTIONS.md)
+
+[Basic App architecture diagram](docs/diagrams/meteosense.png)
+
+[API description](docs/API_DESCRIPTION.md)
+
+## App data flow
+
+1. User types an address on the frontend, triggering a call to Address Lookup API.
+2. The backend retrieves suggestions using Mapbox/Here Maps and returns them to the frontend for display (Mapbox is always privmary data source, Here Maps is used as a fallback option).
+
+3. When the user selects an address, the React App makes two parallel API calls to the backend:
+   - CurrentWeatherAPI for current conditions.
+   - DailyForecastAPI for a 7-day forecast.
+
+4. Backend checks if the data can be retrieved from the cache
+   - If a cache hit occurs, cached data is returned.
+   - On a cache miss, data is fetched from OpenWeather or Weatherbit (OpenWeather is always privmary data source, Weatherbit is used as a fallback option) and then cached.
+
+5. The frontend receives and displays the current weather and 7-day forecast.
+Cache status headers (X-Cache-Hit, X-Cache-Age) indicate whether the data was cached.
 
 ## Run project
 
