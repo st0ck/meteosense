@@ -29,3 +29,5 @@ Using zip codes in cache is ineffective as the grids in different coutrie will b
 For example, in UK ZIP codes cover very small area (as low as 20-30m) which will lead to big number
 of cache misses despite the fact It will consume more memory that in most other countries. Much more
 efficient would be using a geospatial zoning. In this example H3 algorithm is used.
+
+Fallback service mechanics, CI and docker-compose setup were unnecessary to complete the home assignement and were done just for experimentation/personsl safisfaction.
