@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useDebounce } from 'use-debounce';
 import { v4 as uuidv4 } from 'uuid';
 import { getAddressSuggestions, getCurrentWeather, getDailyWeatherForecast } from './utils/api';
 import ForecastTile from './components/ForecastTile.jsx'
@@ -6,37 +7,41 @@ import CurrentWeather from './components/CurrentWeather.jsx'
 
 function App() {
   const [query, setQuery] = useState("");
+  const [manualSelect, setManualSelect] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [weather, setWeather] = useState(null);
   const [forecast, setForecast] = useState(null);
   const [sessionId, setSessionId] = useState("");
   const [cacheStatus, setCacheStatus] = useState({ weather: null, forecast: null });
   const [cacheAge, setCacheAge] = useState({ weather: null, forecast: null });
+  const [debouncedSearch] = useDebounce(query, 500);
 
   useEffect(() => {
     setSessionId(uuidv4());
   }, []);
 
-  const handleInputChange = async (e) => {
-    const value = e.target.value;
-    setQuery(value);
-
-    if (value.length > 2) {
-      try {
-        const response = await getAddressSuggestions(value, sessionId);
-        setSuggestions(response.data.data);
-      } catch (error) {
-        console.error("Error fetching address suggestions: ", error);
+  useEffect(() => {
+    (async () => {
+      if (!manualSelect && debouncedSearch.length > 2) {
+        try {
+          const response =
+            await getAddressSuggestions(debouncedSearch, sessionId);
+          setSuggestions(response.data.data);
+        } catch (error) {
+          console.error("Error fetching address suggestions: ", error);
+          setSuggestions([]);
+        }
+      } else {
         setSuggestions([]);
       }
-    } else {
-      setSuggestions([]);
-    }
-  };
+    })();
+    setManualSelect(false);
+  }, [debouncedSearch]);
 
   const handleSelectSuggestion = async (suggestion) => {
     setQuery(suggestion.address);
     setSuggestions([]);
+    setManualSelect(true);
 
     const { latitude, longitude } = suggestion;
 
@@ -86,7 +91,7 @@ function App() {
           className="w-full p-2 border rounded mb-2"
           placeholder="Enter an address"
           value={query}
-          onChange={handleInputChange}
+          onChange={(e) => setQuery(e.target.value)}
         />
         {suggestionsList}
         {weather && <CurrentWeather weather={weather} cacheStatus={cacheStatus.weather} cacheAge={cacheAge.weather} />}
