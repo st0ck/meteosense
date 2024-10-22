@@ -5,12 +5,21 @@ ARG RUBY_VERSION=3.3.4
 FROM docker.io/library/ruby:$RUBY_VERSION-slim
 
 # Rails app lives here
-WORKDIR /rails
+WORKDIR /app
 
 # Install base packages
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libjemalloc2 libvips sqlite3 && \
-    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+    apt-get install --no-install-recommends -y curl libjemalloc2 libvips sqlite3 coreutils vim cmake make gcc libtool git
+
+RUN git clone http://github.com/uber/h3.git && \
+    cd h3 && \
+    git checkout v4.1.0 && \
+    mkdir build && \
+    cd build && \
+    cmake -DCMAKE_BUILD_TYPE=Release .. && \
+    make && \
+    cp -r /app/h3/build/bin/* /usr/local/bin/ && \
+    rm -rf /app/h3
 
 # Set dev environment
 ENV RAILS_ENV="development" \
@@ -27,12 +36,6 @@ COPY Gemfile Gemfile.lock ./
 RUN bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
     bundle exec bootsnap precompile --gemfile
-
-# Copy application code
-COPY . .
-
-# Precompile bootsnap code for faster boot times
-RUN bundle exec bootsnap precompile app/ lib/
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
