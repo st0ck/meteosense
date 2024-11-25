@@ -141,7 +141,7 @@ GEM
       builder
       minitest (>= 5.0)
       ruby-progressbar
-    mocha (2.5.0)
+    mocha (2.6.0)
       ruby2_keywords (>= 0.0.5)
     msgpack (1.7.3)
     multi_json (1.15.0)
@@ -316,7 +316,7 @@ DEPENDENCIES
   h3 (~> 3.7, >= 3.7.2)
   jbuilder
   minitest-reporters (~> 1.7, >= 1.7.1)
-  mocha (~> 2.5)
+  mocha (~> 2.6)
   puma (>= 5.0)
   rails (~> 7.2.2)
   redis (>= 4.0.1)
